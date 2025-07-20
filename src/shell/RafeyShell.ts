@@ -2,18 +2,20 @@ import * as readline from 'readline';
 import chalk from 'chalk';
 import ora from 'ora';
 import { LLMService } from '../services/LLMService';
-import { Config, ConfigManager } from '../config/ConfigManager';
+
+interface ConversationEntry {
+  timestamp: Date;
+  query: string;
+  response: string;
+}
 
 export class RafeyShell {
   private rl: readline.Interface;
   private llmService: LLMService;
-  private config: Config;
-  private conversationHistory: Config['conversationHistory'] = [];
+  private conversationHistory: ConversationEntry[] = [];
 
-  constructor(config: Config, model: string = 'gemini-1.5-flash') {
-    this.config = config;
-    this.conversationHistory = config.conversationHistory || [];
-    this.llmService = new LLMService(config, model);
+  constructor(model: string = 'gemini-1.5-flash') {
+    this.llmService = new LLMService(model);
     
     this.rl = readline.createInterface({
       input: process.stdin,
@@ -25,8 +27,9 @@ export class RafeyShell {
   }
 
   async start(): Promise<void> {
+    const userProfile = this.llmService.getUserProfile();
     console.log(chalk.blue('🚀 Rafey Shell v1.0.0'));
-    console.log(chalk.gray(`Welcome back, ${this.config.userProfile.name}!`));
+    console.log(chalk.gray(`Welcome back, ${userProfile.name}!`));
     console.log(chalk.gray('Type your questions and get AI-powered responses.'));
     console.log(chalk.gray('Commands: /help, /clear, /exit\n'));
 
@@ -90,7 +93,7 @@ export class RafeyShell {
       }
       
       // Save history asynchronously
-      ConfigManager.saveHistory(this.conversationHistory).catch(console.error);
+      // ConfigManager.saveHistory(this.conversationHistory).catch(console.error); // Removed ConfigManager
       
     } catch (error) {
       spinner.stop();
@@ -127,10 +130,6 @@ export class RafeyShell {
         this.showHistory();
         break;
         
-      case 'profile':
-        this.showProfile();
-        break;
-        
       case 'exit':
       case 'quit':
         this.rl.close();
@@ -147,7 +146,6 @@ export class RafeyShell {
     console.log(chalk.gray('  /help     - Show this help message'));
     console.log(chalk.gray('  /clear    - Clear the console'));
     console.log(chalk.gray('  /history  - Show recent conversation history'));
-    console.log(chalk.gray('  /profile  - Show your profile information'));
     console.log(chalk.gray('  /exit     - Exit the shell'));
     console.log('');
   }
@@ -167,15 +165,5 @@ export class RafeyShell {
       console.log(chalk.gray(`   A: ${entry.response.substring(0, 100)}...`));
       console.log('');
     });
-  }
-
-  private showProfile(): void {
-    console.log(chalk.blue('\n👤 Your Profile:'));
-    console.log(chalk.gray(`Name: ${this.config.userProfile.name}`));
-    console.log(chalk.gray(`Profession: ${this.config.userProfile.profession}`));
-    console.log(chalk.gray(`Interests: ${this.config.userProfile.interests.join(', ')}`));
-    console.log(chalk.gray(`Languages: ${this.config.userProfile.preferences.codeLanguages.join(', ')}`));
-    console.log(chalk.gray(`Response Style: ${this.config.userProfile.preferences.responseStyle}`));
-    console.log('');
   }
 } 

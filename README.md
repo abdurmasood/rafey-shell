@@ -4,10 +4,10 @@ An AI-powered shell with personalized LLM assistance that knows everything about
 
 ## ✨ Features
 
-- **Personalized AI Assistant**: Knows your preferences, profession, and interests
+- **Personalized AI Assistant**: Hardcoded with Rafey's preferences, profession, and interests
 - **Conversation Memory**: Maintains context across sessions
 - **Terminal-First**: Optimized for terminal viewing and workflow
-- **Multiple LLM Support**: Google Gemini integration
+- **Google Gemini Integration**: Powered by Google's Gemini AI
 - **Rich Context**: Includes working directory and conversation history
 - **Built-in Commands**: Help, history, profile management
 
@@ -16,6 +16,7 @@ An AI-powered shell with personalized LLM assistance that knows everything about
 ### Prerequisites
 - Node.js 18.0.0 or higher
 - npm or yarn
+- Google Gemini API key
 
 ### Install globally via npm
 
@@ -35,18 +36,20 @@ npm link
 
 ## ⚙️ Setup
 
-First, run the configuration setup:
+Set your Google Gemini API key as an environment variable:
 
 ```bash
-rafey-shell config
+export GEMINI_API_KEY="your-api-key-here"
 ```
 
-This will prompt you to:
-- Set your name and profession
-- Define your interests
-- Choose response style (concise/detailed/technical)
-- Set preferred programming languages
-- Add your Google Gemini API key
+Or add it to your shell profile (`.bashrc`, `.zshrc`, etc.):
+
+```bash
+echo 'export GEMINI_API_KEY="your-api-key-here"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
 
 ## 🎯 Usage
 
@@ -66,7 +69,7 @@ Once in the shell, you can:
 - `/help` - Show available commands
 - `/clear` - Clear the console
 - `/history` - Show recent conversation history
-- `/profile` - Display your profile information
+- `/profile` - Display Rafey's profile information
 - `/exit` - Exit the shell
 
 ### Examples
@@ -83,14 +86,16 @@ Since you work with TypeScript and React, here are the key optimization techniqu
 ...
 ```
 
-## 🔧 Configuration
+## 👤 User Profile
 
-Configuration is stored in `~/.rafey-shell/config.json`. You can manually edit this file or run `rafey-shell config` to reconfigure.
+The shell comes pre-configured with Rafey's profile:
+- **Name**: Rafey  
+- **Profession**: Software Developer
+- **Interests**: programming, ai, technology
+- **Languages**: TypeScript, Python, JavaScript
+- **Response Style**: Technical
 
-### API Keys
-
-You need a Google Gemini API key to use the AI features. Get one from:
-- [Google AI Studio](https://makersuite.google.com/app/apikey)
+This profile cannot be changed at runtime and is immutable.
 
 ## 📁 Project Structure
 
@@ -99,10 +104,8 @@ src/
 ├── cli.ts                 # CLI entry point
 ├── shell/
 │   └── RafeyShell.ts     # Main shell interface
-├── services/
-│   └── LLMService.ts     # LLM API integration
-└── config/
-    └── ConfigManager.ts   # Configuration management
+└── services/
+    └── LLMService.ts     # LLM API integration with hardcoded profile
 ```
 
 ## 🛠️ Development
@@ -110,6 +113,9 @@ src/
 ```bash
 # Install dependencies
 npm install
+
+# Set API key
+export GEMINI_API_KEY="your-api-key"
 
 # Run in development mode
 npm run dev

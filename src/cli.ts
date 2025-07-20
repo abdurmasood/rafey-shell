@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
 import { Command } from 'commander';
 import { RafeyShell } from './shell/RafeyShell';
-import { ConfigManager } from './config/ConfigManager';
 import chalk from 'chalk';
 
 const program = new Command();
@@ -18,24 +20,10 @@ program
   .option('-m, --model <model>', 'LLM model to use', 'gemini-1.5-flash')
   .action(async (options) => {
     try {
-      const config = await ConfigManager.load();
-      const shell = new RafeyShell(config, options.model);
+      const shell = new RafeyShell(options.model);
       await shell.start();
     } catch (error) {
       console.error(chalk.red('Error starting shell:'), error instanceof Error ? error.message : String(error));
-      process.exit(1);
-    }
-  });
-
-program
-  .command('config')
-  .description('Configure the shell')
-  .action(async () => {
-    try {
-      await ConfigManager.setup();
-      console.log(chalk.green('Configuration complete!'));
-    } catch (error) {
-      console.error(chalk.red('Configuration failed:'), error instanceof Error ? error.message : String(error));
       process.exit(1);
     }
   });

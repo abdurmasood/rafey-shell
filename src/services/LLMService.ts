@@ -1,18 +1,46 @@
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
-import { Config } from '../config/ConfigManager';
+
+interface UserProfile {
+  name: string;
+  profession: string;
+  interests: string[];
+  preferences: {
+    responseStyle: 'concise' | 'detailed' | 'technical';
+    codeLanguages: string[];
+  };
+}
+
+interface ConversationEntry {
+  timestamp: Date;
+  query: string;
+  response: string;
+}
 
 export class LLMService {
   private genAI?: GoogleGenerativeAI;
   private model?: GenerativeModel;
-  private config: Config;
   private modelName: string;
+  
+  // Immutable user profile - cannot be changed at runtime
+  // TODO: Define your profile values here
+  private readonly userProfile: UserProfile = {
+    name: 'Abdur Rafey Masood',
+    profession: 'Software Developer',
+    interests: ['programming', 'AI', 'technology', 'music', 'books', 'travel', 'self development'],
+    preferences: {
+      responseStyle: 'technical',
+      codeLanguages: ['python', 'javascript', 'react', 'nextjs']
+    }
+  };
 
-  constructor(config: Config, modelName: string = 'gemini-1.5-flash') {
-    this.config = config;
+  constructor(modelName: string = 'gemini-1.5-flash') {
     this.modelName = modelName;
     
-    if (config.geminiApiKey) {
-      this.genAI = new GoogleGenerativeAI(config.geminiApiKey);
+    // Get API key from environment variable
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    
+    if (geminiApiKey) {
+      this.genAI = new GoogleGenerativeAI(geminiApiKey);
       this.model = this.genAI.getGenerativeModel({ 
         model: modelName,
         generationConfig: {
@@ -23,9 +51,9 @@ export class LLMService {
     }
   }
 
-  async query(userInput: string, conversationHistory: Config['conversationHistory']): Promise<string> {
+  async query(userInput: string, conversationHistory: ConversationEntry[]): Promise<string> {
     if (!this.model) {
-      throw new Error('No API key configured. Please run: rafey-shell config');
+      throw new Error('No API key configured. Please set GEMINI_API_KEY environment variable.');
     }
 
     const systemPrompt = this.buildSystemPrompt();
@@ -39,14 +67,14 @@ export class LLMService {
       
     } catch (error: any) {
       if (error?.status === 401 || error?.message?.includes('API_KEY_INVALID')) {
-        throw new Error('Invalid API key. Please check your Gemini API key.');
+        throw new Error('Invalid API key. Please check your GEMINI_API_KEY environment variable.');
       }
       throw new Error(`API Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   private buildSystemPrompt(): string {
-    const { userProfile } = this.config;
+    const userProfile = this.userProfile;
     
     return `You are Rafey's assistant and you know everything about him. You wait for questions from any user and provide responses on Rafey based on the information you have about him. If you don't know the answer, you say so.
 
@@ -54,7 +82,6 @@ USER PROFILE:
 - Name: ${userProfile.name}
 - Profession: ${userProfile.profession}
 - Interests: ${userProfile.interests.join(', ')}
-- Working Directory: ${userProfile.workingDirectory}
 - Preferred Languages: ${userProfile.preferences.codeLanguages.join(', ')}
 - Response Style: ${userProfile.preferences.responseStyle}
 
@@ -79,7 +106,7 @@ RESPONSE FORMAT:
 Remember: You're integrated into their terminal workflow, so responses should be optimized for terminal viewing and practical use.`;
   }
 
-  private buildContextualPrompt(userInput: string, history: Config['conversationHistory']): string {
+  private buildContextualPrompt(userInput: string, history: ConversationEntry[]): string {
     let prompt = '';
 
     // Add recent conversation context
@@ -101,5 +128,9 @@ Remember: You're integrated into their terminal workflow, so responses should be
 USER QUERY: ${userInput}`;
 
     return prompt;
+  }
+
+  getUserProfile(): UserProfile {
+    return { ...this.userProfile }; // Return a copy to prevent external modifications
   }
 } 
