@@ -7,7 +7,7 @@ An AI-powered shell with personalized LLM assistance that knows everything about
 - **Personalized AI Assistant**: Knows your preferences, profession, and interests
 - **Conversation Memory**: Maintains context across sessions
 - **Terminal-First**: Optimized for terminal viewing and workflow
-- **Multiple LLM Support**: Claude 3 integration
+- **Multiple LLM Support**: Google Gemini integration
 - **Rich Context**: Includes working directory and conversation history
 - **Built-in Commands**: Help, history, profile management
 
@@ -46,7 +46,7 @@ This will prompt you to:
 - Define your interests
 - Choose response style (concise/detailed/technical)
 - Set preferred programming languages
-- Add your Anthropic API key
+- Add your Google Gemini API key
 
 ## 🎯 Usage
 
@@ -89,8 +89,8 @@ Configuration is stored in `~/.rafey-shell/config.json`. You can manually edit t
 
 ### API Keys
 
-You need an Anthropic API key to use Claude. Get one from:
-- [Anthropic Console](https://console.anthropic.com/)
+You need a Google Gemini API key to use the AI features. Get one from:
+- [Google AI Studio](https://makersuite.google.com/app/apikey)
 
 ## 📁 Project Structure
 

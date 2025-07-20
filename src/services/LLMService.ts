@@ -1,50 +1,45 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import { Config } from '../config/ConfigManager';
 
 export class LLMService {
-  private anthropic?: Anthropic;
+  private genAI?: GoogleGenerativeAI;
+  private model?: GenerativeModel;
   private config: Config;
-  private model: string;
+  private modelName: string;
 
-  constructor(config: Config, model: string = 'claude-3-7-sonnet-20250219') {
+  constructor(config: Config, modelName: string = 'gemini-1.5-flash') {
     this.config = config;
-    this.model = model;
+    this.modelName = modelName;
     
-    if (config.anthropicApiKey) {
-      this.anthropic = new Anthropic({
-        apiKey: config.anthropicApiKey,
+    if (config.geminiApiKey) {
+      this.genAI = new GoogleGenerativeAI(config.geminiApiKey);
+      this.model = this.genAI.getGenerativeModel({ 
+        model: modelName,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 4000,
+        }
       });
     }
   }
 
   async query(userInput: string, conversationHistory: Config['conversationHistory']): Promise<string> {
-    if (!this.anthropic) {
+    if (!this.model) {
       throw new Error('No API key configured. Please run: rafey-shell config');
     }
 
     const systemPrompt = this.buildSystemPrompt();
     const contextualPrompt = this.buildContextualPrompt(userInput, conversationHistory);
+    const fullPrompt = `${systemPrompt}\n\n${contextualPrompt}`;
 
     try {
-      const response = await this.anthropic.messages.create({
-        model: this.model,
-        max_tokens: 4000,
-        temperature: 0.7,
-        system: systemPrompt,
-        messages: [
-          {
-            role: 'user',
-            content: contextualPrompt
-          }
-        ]
-      });
-
-      const textContent = response.content.find(content => content.type === 'text');
-      return textContent?.text || 'No response generated.';
+      const result = await this.model.generateContent(fullPrompt);
+      const response = await result.response;
+      return response.text() || 'No response generated.';
       
-    } catch (error) {
-      if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
-        throw new Error('Invalid API key. Please check your Anthropic API key.');
+    } catch (error: any) {
+      if (error?.status === 401 || error?.message?.includes('API_KEY_INVALID')) {
+        throw new Error('Invalid API key. Please check your Gemini API key.');
       }
       throw new Error(`API Error: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -53,7 +48,7 @@ export class LLMService {
   private buildSystemPrompt(): string {
     const { userProfile } = this.config;
     
-    return `You are Rafey's personal AI assistant integrated into their shell terminal. You know everything about them and provide personalized, contextual responses.
+    return `You are Rafey's assistant and you know everything about him. You wait for questions from any user and provide responses on Rafey based on the information you have about him. If you don't know the answer, you say so.
 
 USER PROFILE:
 - Name: ${userProfile.name}

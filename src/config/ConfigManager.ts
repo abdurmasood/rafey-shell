@@ -5,7 +5,7 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 
 export interface Config {
-  anthropicApiKey?: string;
+  geminiApiKey?: string;
   openaiApiKey?: string;
   userProfile: {
     name: string;
@@ -88,14 +88,14 @@ export class ConfigManager {
       },
       {
         type: 'password',
-        name: 'anthropicApiKey',
-        message: 'Anthropic API Key (optional):',
+        name: 'geminiApiKey',
+        message: 'Google Gemini API Key (optional):',
         mask: '*'
       }
     ]);
 
     const config: Config = {
-      anthropicApiKey: answers.anthropicApiKey || undefined,
+      geminiApiKey: answers.geminiApiKey || undefined,
       userProfile: {
         name: answers.name,
         profession: answers.profession,

@@ -15,7 +15,7 @@ program
 program
   .command('start')
   .description('Start the interactive shell')
-  .option('-m, --model <model>', 'LLM model to use', 'claude-3-7-sonnet-20250219')
+  .option('-m, --model <model>', 'LLM model to use', 'gemini-1.5-flash')
   .action(async (options) => {
     try {
       const config = await ConfigManager.load();
