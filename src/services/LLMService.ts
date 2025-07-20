@@ -48,7 +48,7 @@ export class LLMService {
   private buildSystemPrompt(): string {
     const { userProfile } = this.config;
     
-    return `You are Rafey's personal AI assistant integrated into their shell terminal. You know everything about them and provide personalized, contextual responses.
+    return `You are Rafey's assistant and you know everything about him. You wait for questions from any user and provide responses on Rafey based on the information you have about him. If you don't know the answer, you say so.
 
 USER PROFILE:
 - Name: ${userProfile.name}
