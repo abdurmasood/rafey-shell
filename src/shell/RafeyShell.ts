@@ -10,7 +10,7 @@ export class RafeyShell {
   private config: Config;
   private conversationHistory: Config['conversationHistory'] = [];
 
-  constructor(config: Config, model: string = 'claude-3-7-sonnet-20250219') {
+  constructor(config: Config, model: string = 'gemini-1.5-flash') {
     this.config = config;
     this.conversationHistory = config.conversationHistory || [];
     this.llmService = new LLMService(config, model);
