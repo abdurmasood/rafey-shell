@@ -33,7 +33,7 @@ export class LLMService {
 
   constructor(modelName: string = 'gemini-1.5-flash') {
     // Use environment variable for API endpoint, fallback to production URL
-    this.apiEndpoint = process.env.RAFEY_SHELL_API_URL || 'https://rafey-shell.vercel.app/api/chat';
+    this.apiEndpoint = process.env.RAFEY_SHELL_API_URL || 'https://rafey-shell-eeud6bgsv-abdurmasoods-projects.vercel.app/api/chat';
     // Model name can be passed but is handled server-side via environment variable
   }
 
