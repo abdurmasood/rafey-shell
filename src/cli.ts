@@ -22,6 +22,9 @@ program
     try {
       const shell = new RafeyShell(options.model);
       await shell.start();
+      
+      // Keep the process alive - readline will handle the event loop
+      // The process will exit when readline closes (user types /exit or Ctrl+C)
     } catch (error) {
       console.error(chalk.red('Error starting shell:'), error instanceof Error ? error.message : String(error));
       process.exit(1);
