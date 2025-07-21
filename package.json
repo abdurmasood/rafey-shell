@@ -1,6 +1,6 @@
 {
   "name": "rafey-shell",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "An AI-powered shell with personalized LLM assistance",
   "main": "dist/cli.js",
   "bin": {
