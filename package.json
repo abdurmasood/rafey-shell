@@ -2,7 +2,7 @@
   "name": "rafey-shell",
   "version": "1.0.0",
   "description": "An AI-powered shell with personalized LLM assistance",
-  "main": "dist/index.js",
+  "main": "dist/cli.js",
   "bin": {
     "rafey-shell": "dist/cli.js",
     "rs": "dist/cli.js"
@@ -31,5 +31,22 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "package.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abdurmasood/rafey-shell.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "bugs": {
+    "url": "https://github.com/abdurmasood/rafey-shell/issues"
+  },
+  "homepage": "https://github.com/abdurmasood/rafey-shell#readme"
 } 
