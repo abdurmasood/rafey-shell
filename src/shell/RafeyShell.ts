@@ -73,7 +73,7 @@ export class RafeyShell {
     stdin.pause();
     stdin.setRawMode?.(false);
     
-    console.log(); // Add spacing before spinner
+    // Remove extra spacing
     const spinner = ora({
       text: 'Thinking...',
       color: 'cyan'
@@ -85,7 +85,7 @@ export class RafeyShell {
       
       console.log(chalk.green('💡 Response:'));
       await this.typeWriter(response);
-      console.log('\n'); // Double line break for better spacing
+      console.log(); // Single line break
 
       // Save to history
       const historyEntry = {
@@ -106,8 +106,7 @@ export class RafeyShell {
       
     } catch (error) {
       spinner.stop();
-      console.error(chalk.red('\n❌ Error:'), error instanceof Error ? error.message : String(error));
-      console.log('');
+      console.error(chalk.red('❌ Error:'), error instanceof Error ? error.message : String(error));
     } finally {
       // Drain any buffered input
       stdin.read();
