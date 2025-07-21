@@ -68,15 +68,22 @@ export class RafeyShell {
   }
 
   private async processQuery(query: string): Promise<void> {
-    const spinner = ora('Thinking...').start();
+    // Pause readline to prevent conflicts with ora spinner
+    this.rl.pause();
+    
+    console.log(); // Add spacing before spinner
+    const spinner = ora({
+      text: 'Thinking...',
+      color: 'cyan'
+    }).start();
     
     try {
       const response = await this.llmService.query(query, this.conversationHistory);
       spinner.stop();
       
-      console.log(chalk.green('\n💡 Response:'));
+      console.log(chalk.green('💡 Response:'));
       await this.typeWriter(response);
-      console.log('');
+      console.log('\n'); // Double line break for better spacing
 
       // Save to history
       const historyEntry = {
@@ -99,10 +106,13 @@ export class RafeyShell {
       spinner.stop();
       console.error(chalk.red('\n❌ Error:'), error instanceof Error ? error.message : String(error));
       console.log('');
+    } finally {
+      // Resume readline after spinner is done
+      this.rl.resume();
     }
   }
 
-  private async typeWriter(text: string, delay: number = 150): Promise<void> {
+  private async typeWriter(text: string, delay: number = 50): Promise<void> {
     const words = text.split(' ');
     for (let i = 0; i < words.length; i++) {
       process.stdout.write(words[i]);
@@ -114,7 +124,7 @@ export class RafeyShell {
   }
 
   private async handleCommand(command: string): Promise<void> {
-    const [cmd, ...args] = command.slice(1).split(' ');
+    const [cmd] = command.slice(1).split(' ');
     
     switch (cmd.toLowerCase()) {
       case 'help':
