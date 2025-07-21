@@ -4,7 +4,7 @@
       "maxDuration": 30
     }
   },
-  "installCommand": "npm install",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "buildCommand": "echo 'No build required for API functions'",
   "outputDirectory": "."
 }
