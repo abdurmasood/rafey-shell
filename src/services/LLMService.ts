@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+// No longer using direct Google AI imports - using serverless API instead
 
 interface UserProfile {
   name: string;
@@ -17,9 +17,7 @@ interface ConversationEntry {
 }
 
 export class LLMService {
-  private genAI?: GoogleGenerativeAI;
-  private model?: GenerativeModel;
-  private modelName: string;
+  private apiEndpoint: string;
   
   // Immutable user profile - cannot be changed at runtime
   // TODO: Define your profile values here
@@ -34,40 +32,42 @@ export class LLMService {
   };
 
   constructor(modelName: string = 'gemini-1.5-flash') {
-    this.modelName = modelName;
-    
-    // Get API key from environment variable
-    const geminiApiKey = process.env.GEMINI_API_KEY;
-    
-    if (geminiApiKey) {
-      this.genAI = new GoogleGenerativeAI(geminiApiKey);
-      this.model = this.genAI.getGenerativeModel({ 
-        model: modelName,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 4000,
-        }
-      });
-    }
+    // Use environment variable for API endpoint, fallback to production URL
+    this.apiEndpoint = process.env.RAFEY_SHELL_API_URL || 'https://rafey-shell.vercel.app/api/chat';
+    // Model name can be passed but is handled server-side via environment variable
   }
 
   async query(userInput: string, conversationHistory: ConversationEntry[]): Promise<string> {
-    if (!this.model) {
-      throw new Error('No API key configured. Please set GEMINI_API_KEY environment variable.');
-    }
-
     const systemPrompt = this.buildSystemPrompt();
     const contextualPrompt = this.buildContextualPrompt(userInput, conversationHistory);
     const fullPrompt = `${systemPrompt}\n\n${contextualPrompt}`;
 
     try {
-      const result = await this.model.generateContent(fullPrompt);
-      const response = await result.response;
-      return response.text() || 'No response generated.';
+      const response = await fetch(this.apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: fullPrompt,
+          history: conversationHistory.map(entry => ({
+            role: entry.query ? 'user' : 'assistant',
+            content: entry.query || entry.response
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        const errorData: any = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+      }
+
+      const data = await response.json() as { response: string };
+      return data.response || 'No response generated.';
       
     } catch (error: any) {
-      if (error?.status === 401 || error?.message?.includes('API_KEY_INVALID')) {
-        throw new Error('Invalid API key. Please check your GEMINI_API_KEY environment variable.');
+      if (error?.message?.includes('fetch')) {
+        throw new Error('Unable to connect to AI service. Please check your internet connection.');
       }
       throw new Error(`API Error: ${error instanceof Error ? error.message : String(error)}`);
     }

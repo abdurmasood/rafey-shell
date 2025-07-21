@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/chat.ts": {
+      "maxDuration": 30
+    }
+  },
+  "installCommand": "npm install",
+  "buildCommand": "echo 'No build required for API functions'",
+  "outputDirectory": "."
+}
