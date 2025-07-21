@@ -68,8 +68,10 @@ export class RafeyShell {
   }
 
   private async processQuery(query: string): Promise<void> {
-    // Pause readline to prevent conflicts with ora spinner
-    this.rl.pause();
+    // Temporarily remove all input listeners
+    const stdin = process.stdin;
+    stdin.pause();
+    stdin.setRawMode?.(false);
     
     console.log(); // Add spacing before spinner
     const spinner = ora({
@@ -107,8 +109,12 @@ export class RafeyShell {
       console.error(chalk.red('\n❌ Error:'), error instanceof Error ? error.message : String(error));
       console.log('');
     } finally {
-      // Resume readline after spinner is done
-      this.rl.resume();
+      // Drain any buffered input
+      stdin.read();
+      
+      // Re-enable stdin and readline
+      stdin.setRawMode?.(true);
+      stdin.resume();
     }
   }
 
