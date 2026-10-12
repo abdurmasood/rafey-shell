@@ -1,6 +1,6 @@
 {
   "name": "rafey-shell",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "An AI-powered shell with personalized LLM assistance",
   "main": "dist/cli.js",
   "bin": {
@@ -13,7 +13,13 @@
     "start": "node dist/cli.js",
     "prepare": "npm run build"
   },
-  "keywords": ["cli", "ai", "shell", "llm", "assistant"],
+  "keywords": [
+    "cli",
+    "ai",
+    "shell",
+    "llm",
+    "assistant"
+  ],
   "author": "Abdurrafey Masood",
   "license": "MIT",
   "dependencies": {
@@ -51,4 +57,4 @@
     "url": "https://github.com/abdurmasood/rafey-shell/issues"
   },
   "homepage": "https://github.com/abdurmasood/rafey-shell#readme"
-} 
+}
