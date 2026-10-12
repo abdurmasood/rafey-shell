@@ -18,7 +18,7 @@ This guide explains how to deploy the RafeyShell API to Vercel so users don't ne
 4. Import your GitHub repository
 5. Configure environment variables:
    - `GEMINI_API_KEY`: Your Gemini API key from Google AI Studio
-   - `GEMINI_MODEL`: (Optional) Model name, defaults to `gemini-1.5-flash`
+   - `GEMINI_MODEL`: (Optional) Model name, defaults to `gemini-3.8-flash`
 6. Click "Deploy"
 
 ### Option 2: Deploy via Vercel CLI

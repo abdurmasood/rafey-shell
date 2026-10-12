@@ -17,7 +17,7 @@ program
 program
   .command('start')
   .description('Start the interactive shell')
-  .option('-m, --model <model>', 'LLM model to use', 'gemini-1.5-flash')
+  .option('-m, --model <model>', 'LLM model to use', 'gemini-3.8-flash')
   .action(async (options) => {
     try {
       const shell = new RafeyShell(options.model);
