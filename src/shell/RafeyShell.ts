@@ -14,7 +14,7 @@ export class RafeyShell {
   private llmService: LLMService;
   private conversationHistory: ConversationEntry[] = [];
 
-  constructor(model: string = 'gemini-1.5-flash') {
+  constructor(model: string = 'gemini-3.8-flash') {
     this.llmService = new LLMService(model);
     
     this.rl = readline.createInterface({
