@@ -27,10 +27,8 @@ export class RafeyShell {
   }
 
   async start(): Promise<void> {
-    const userProfile = this.llmService.getUserProfile();
     console.log(chalk.blue('🚀 Rafey Shell v1.0.0'));
-    console.log(chalk.gray(`Welcome back, ${userProfile.name}!`));
-    console.log(chalk.gray('Type your questions and get AI-powered responses.'));
+    console.log(chalk.gray('Ask anything about Rafey.'));
     console.log(chalk.gray('Commands: /help, /clear, /exit\n'));
 
     this.rl.prompt();
