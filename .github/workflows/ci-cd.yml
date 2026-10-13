@@ -153,7 +153,7 @@ jobs:
       - name: Setup Node.js for npm
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Setup pnpm
@@ -170,15 +170,16 @@ jobs:
           key: build-${{ github.sha }}
           fail-on-cache-miss: true
 
+      - name: Use an npm release that supports trusted publishing
+        run: npm install -g npm@11
+
       - name: Update package version to match tag
         run: |
           TAG_VERSION=${GITHUB_REF#refs/tags/v}
           npm version $TAG_VERSION --no-git-tag-version --allow-same-version
 
       - name: Publish to npm
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
 
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v4
