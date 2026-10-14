@@ -6,7 +6,7 @@
 ╩╚═┴ ┴└  └─┘ ┴  ╚═╝┴ ┴└─┘┴─┘┴─┘
 ```
 
-*Everything you need to know abou Rafey*
+*Everything you need to know about Rafey*
 
 [![npm version](https://img.shields.io/npm/v/rafey-shell?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rafey-shell)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen?style=flat-square)](https://nodejs.org)
