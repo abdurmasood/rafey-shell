@@ -1,7 +1,11 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import * as readline from 'readline';
 import chalk from 'chalk';
 import ora from 'ora';
 import { LLMService } from '../services/LLMService';
+
+const MUTED = '#8e8e93';
 
 interface ConversationEntry {
   timestamp: Date;
@@ -9,54 +13,112 @@ interface ConversationEntry {
   response: string;
 }
 
+function muted(text: string): string {
+  return chalk.hex(MUTED)(text);
+}
+
+function readVersion(): string {
+  try {
+    const pkgPath = join(__dirname, '..', '..', 'package.json');
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as { version?: string };
+    return pkg.version ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function answerWidth(): number {
+  const columns = process.stdout.columns || 80;
+  return Math.max(24, Math.min(68, columns - 2));
+}
+
+function wrapLine(line: string, width: number): string {
+  const words = line.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '';
+
+  const lines: string[] = [];
+  let current = '';
+
+  for (const word of words) {
+    if (!current) {
+      current = word;
+      continue;
+    }
+
+    if (current.length + 1 + word.length <= width) {
+      current += ` ${word}`;
+      continue;
+    }
+
+    lines.push(current);
+    current = word;
+  }
+
+  if (current) lines.push(current);
+  return lines.join('\n');
+}
+
+function wrapText(text: string, width: number): string {
+  return text.split('\n').map((line) => wrapLine(line, width)).join('\n');
+}
+
+function formatAnswer(text: string): string {
+  return wrapText(text.trim(), answerWidth())
+    .split('\n')
+    .map((line) => (line ? `  ${line}` : ''))
+    .join('\n');
+}
+
 export class RafeyShell {
   private rl: readline.Interface;
   private llmService: LLMService;
   private conversationHistory: ConversationEntry[] = [];
+  private version = readVersion();
 
   constructor(model: string = 'gemini-3.8-flash') {
     this.llmService = new LLMService(model);
-    
+
     this.rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
-      prompt: chalk.cyan('🧠 rafey-shell> ')
+      prompt: muted('› '),
     });
 
     this.setupEventHandlers();
   }
 
   async start(): Promise<void> {
-    console.log(chalk.blue('🚀 Rafey Shell v1.0.0'));
-    console.log(chalk.gray('Ask anything about Rafey.'));
-    console.log(chalk.gray('Commands: /help, /clear, /exit\n'));
-
+    this.printBanner();
     this.rl.prompt();
+  }
+
+  private printBanner(): void {
+    const version = this.version ? `  ${muted(this.version)}` : '';
+    console.log(`${chalk.bold('rafey')}${version}`);
+    console.log();
   }
 
   private setupEventHandlers(): void {
     this.rl.on('line', async (input: string) => {
       const trimmedInput = input.trim();
-      
+
       if (!trimmedInput) {
         this.rl.prompt();
         return;
       }
 
-      // Handle built-in commands
       if (trimmedInput.startsWith('/')) {
         await this.handleCommand(trimmedInput);
         this.rl.prompt();
         return;
       }
 
-      // Process LLM query
       await this.processQuery(trimmedInput);
       this.rl.prompt();
     });
 
     this.rl.on('close', () => {
-      console.log(chalk.yellow('\n👋 Goodbye!'));
+      console.log(muted('\nbye'));
       process.exit(0);
     });
 
@@ -66,117 +128,122 @@ export class RafeyShell {
   }
 
   private async processQuery(query: string): Promise<void> {
-    // Temporarily remove all input listeners
     const stdin = process.stdin;
     stdin.pause();
     stdin.setRawMode?.(false);
-    
-    // Remove extra spacing
+
     const spinner = ora({
-      text: 'Thinking...',
-      color: 'cyan'
+      text: muted('thinking'),
+      color: 'gray',
+      spinner: 'dots',
     }).start();
-    
+
     try {
       const response = await this.llmService.query(query, this.conversationHistory);
       spinner.stop();
-      
-      console.log(chalk.green('💡 Response:'));
-      await this.typeWriter(response);
-      console.log(); // Single line break
+      console.log();
+      await this.typeWriter(formatAnswer(response));
+      console.log();
+      console.log();
 
-      // Save to history
-      const historyEntry = {
+      this.conversationHistory.push({
         timestamp: new Date(),
         query,
-        response
-      };
-      
-      this.conversationHistory.push(historyEntry);
-      
-      // Keep only last 50 conversations to manage memory
+        response,
+      });
+
       if (this.conversationHistory.length > 50) {
         this.conversationHistory = this.conversationHistory.slice(-50);
       }
-      
-      // Save history asynchronously
-      // ConfigManager.saveHistory(this.conversationHistory).catch(console.error); // Removed ConfigManager
-      
     } catch (error) {
       spinner.stop();
-      console.error(chalk.red('❌ Error:'), error instanceof Error ? error.message : String(error));
+      const message = error instanceof Error ? error.message : String(error);
+      console.log();
+      console.log(muted(`  ${message}`));
+      console.log();
     } finally {
-      // Drain any buffered input
       stdin.read();
-      
-      // Re-enable stdin and readline
       stdin.setRawMode?.(true);
       stdin.resume();
     }
   }
 
   private async typeWriter(text: string, delay: number = 50): Promise<void> {
-    const words = text.split(' ');
-    for (let i = 0; i < words.length; i++) {
-      process.stdout.write(words[i]);
-      if (i < words.length - 1) {
-        process.stdout.write(' ');
-        await new Promise(resolve => setTimeout(resolve, delay));
+    const parts = text.split(/(\s+)/);
+
+    for (const part of parts) {
+      if (!part) continue;
+      process.stdout.write(part);
+      if (part.trim().length > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
 
   private async handleCommand(command: string): Promise<void> {
     const [cmd] = command.slice(1).split(' ');
-    
+
     switch (cmd.toLowerCase()) {
       case 'help':
         this.showHelp();
         break;
-        
+
       case 'clear':
         console.clear();
-        console.log(chalk.blue('🧠 Rafey Shell - Console cleared'));
+        this.printBanner();
         break;
-        
+
       case 'history':
         this.showHistory();
         break;
-        
+
       case 'exit':
       case 'quit':
         this.rl.close();
         break;
-        
+
       default:
-        console.log(chalk.red(`Unknown command: ${cmd}`));
+        console.log();
+        console.log(muted(`  Unknown command: ${cmd}`));
         this.showHelp();
     }
   }
 
   private showHelp(): void {
-    console.log(chalk.blue('\n📚 Available Commands:'));
-    console.log(chalk.gray('  /help     - Show this help message'));
-    console.log(chalk.gray('  /clear    - Clear the console'));
-    console.log(chalk.gray('  /history  - Show recent conversation history'));
-    console.log(chalk.gray('  /exit     - Exit the shell'));
-    console.log('');
+    const commands: Array<[string, string]> = [
+      ['/help', 'Show this help message'],
+      ['/clear', 'Clear the console'],
+      ['/history', 'Show recent conversation history'],
+      ['/exit', 'Exit the shell'],
+    ];
+
+    console.log();
+    console.log(muted('commands'));
+    console.log();
+    for (const [name, description] of commands) {
+      console.log(`  ${name.padEnd(10)}${muted(description)}`);
+    }
+    console.log();
   }
 
   private showHistory(): void {
-    console.log(chalk.blue('\n📖 Recent History:'));
-    
+    console.log();
+    console.log(muted('history'));
+    console.log();
+
     if (this.conversationHistory.length === 0) {
-      console.log(chalk.gray('No conversation history yet.'));
-      console.log('');
+      console.log(muted('  No conversation yet.'));
+      console.log();
       return;
     }
 
-    const recentHistory = this.conversationHistory.slice(-5);
-    recentHistory.forEach((entry, index) => {
-      console.log(chalk.cyan(`${index + 1}. Q: ${entry.query}`));
-      console.log(chalk.gray(`   A: ${entry.response.substring(0, 100)}...`));
-      console.log('');
+    const width = answerWidth();
+    this.conversationHistory.slice(-5).forEach((entry, index) => {
+      const firstLine = entry.response.trim().split('\n')[0] ?? '';
+      const preview = firstLine.length > width ? `${firstLine.slice(0, width - 1)}…` : firstLine;
+      console.log(`  ${index + 1}  ${entry.query}`);
+      console.log(muted(`     ${preview}`));
     });
+    console.log();
   }
-} 
+}
