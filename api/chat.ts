@@ -6,7 +6,6 @@ export const config = {
 
 interface ChatRequest {
   prompt: string;
-  history?: Array<{ role: string; content: string }>;
 }
 
 export default async function handler(request: Request) {
@@ -32,7 +31,7 @@ export default async function handler(request: Request) {
 
   try {
     const body: ChatRequest = await request.json();
-    const { prompt, history = [] } = body;
+    const { prompt } = body;
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Prompt is required' }), {
@@ -55,16 +54,7 @@ export default async function handler(request: Request) {
       model: process.env.GEMINI_MODEL || 'gemini-3.8-flash' 
     });
 
-    // Build conversation history
-    const conversationHistory = history
-      .map(entry => `${entry.role}: ${entry.content}`)
-      .join('\n');
-
-    const fullPrompt = conversationHistory 
-      ? `${conversationHistory}\nuser: ${prompt}`
-      : prompt;
-
-    const result = await model.generateContent(fullPrompt);
+    const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 

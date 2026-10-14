@@ -49,11 +49,7 @@ export class LLMService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: fullPrompt,
-          history: conversationHistory.map(entry => ({
-            role: entry.query ? 'user' : 'assistant',
-            content: entry.query || entry.response
-          }))
+          prompt: fullPrompt
         })
       });
 
@@ -167,7 +163,7 @@ Remember: You're integrated into their terminal workflow, so responses should be
       const recentHistory = history.slice(-3); // Last 3 exchanges for context
       recentHistory.forEach((entry, index) => {
         prompt += `${index + 1}. User: ${entry.query}\n`;
-        prompt += `   Assistant: ${entry.response.substring(0, 200)}...\n\n`;
+        prompt += `   Assistant: ${entry.response}\n\n`;
       });
       prompt += '\n';
     }
